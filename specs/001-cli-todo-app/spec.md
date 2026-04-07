@@ -69,11 +69,12 @@ A user wants to correct a task title they mistyped, or remove a task they no lon
 
 ### Functional Requirements
 
-- **FR-001**: System MUST allow users to create a new task by providing a title string.
+- **FR-001**: System MUST allow users to create a new task by providing a title string and an optional description.
 - **FR-002**: System MUST assign a unique, sequential numeric ID to each newly created task (starting from 1).
-- **FR-003**: System MUST allow users to list all tasks, displaying ID, title, and status (pending/completed).
+- **FR-003**: System MUST allow users to list all tasks, displaying ID, title, description, and status (pending/completed).
 - **FR-004**: System MUST allow users to mark a task as completed by referencing its ID.
-- **FR-005**: System MUST allow users to update a task's title by referencing its ID.
+- **FR-004b**: System MUST allow users to toggle a task between completed and pending by referencing its ID.
+- **FR-005**: System MUST allow users to update a task's title and optionally its description by referencing its ID.
 - **FR-006**: System MUST allow users to delete a task by referencing its ID.
 - **FR-007**: System MUST validate that task titles are not empty or whitespace-only before creating or updating.
 - **FR-008**: System MUST validate that a task ID exists before performing update, delete, or complete operations.
@@ -84,15 +85,15 @@ A user wants to correct a task title they mistyped, or remove a task they no lon
 
 ### Key Entities
 
-- **Task**: Represents a single todo item. Attributes: `id` (unique integer), `title` (non-empty string), `status` (enum: pending | completed), `created_at` (timestamp of creation).
-- **TaskList**: Represents the in-memory collection of all Task objects. Supports add, remove, update, list, and find-by-id operations.
+- **Task**: Represents a single todo item. Attributes: `id` (unique integer), `title` (non-empty string), `description` (optional string, defaults empty), `status` (enum: pending | completed), `created_at` (timestamp of creation).
+- **TaskList**: Represents the in-memory collection of all Task objects. Supports add, remove, update, list, complete, toggle, and find-by-id operations.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: Users can create a task and see it listed within a single CLI session in under 1 second per operation.
-- **SC-002**: Users can successfully complete all CRUD operations (create, read, update, delete, complete) without any unhandled exceptions or crashes.
+- **SC-002**: Users can successfully complete all CRUD operations (create, read, update, delete, complete, toggle) without any unhandled exceptions or crashes.
 - **SC-003**: All functional requirements (FR-001 through FR-012) are satisfied and verifiable through manual testing or automated tests.
 - **SC-004**: Code structure strictly follows the constitution's mandated layout (`models.py`, `services.py`, `cli.py`, `main.py`) with no cross-layer violations.
 - **SC-005**: Invalid inputs (empty title, non-existent ID, empty arguments) all produce clear error messages — zero crashes from bad input.

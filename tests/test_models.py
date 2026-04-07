@@ -70,6 +70,21 @@ class TestTaskListAdd:
         task = tl.add("  padded  ")
         assert task.title == "padded"
 
+    def test_description_is_stored(self):
+        tl = TaskList()
+        task = tl.add("Task", "Buy milk and eggs")
+        assert task.description == "Buy milk and eggs"
+
+    def test_description_is_trimmed(self):
+        tl = TaskList()
+        task = tl.add("Task", "  padded desc  ")
+        assert task.description == "padded desc"
+
+    def test_default_description_is_empty(self):
+        tl = TaskList()
+        task = tl.add("Task")
+        assert task.description == ""
+
 
 # --- T023: TaskList.list_all() returns all tasks in order ---
 
@@ -128,6 +143,34 @@ class TestTaskListComplete:
             tl.complete(task.id)
 
 
+class TestTaskListToggle:
+    def test_toggle_pending_to_completed(self):
+        tl = TaskList()
+        task = tl.add("Task")
+        result = tl.toggle(task.id)
+        assert result.status == TaskStatus.COMPLETED
+
+    def test_toggle_completed_to_pending(self):
+        tl = TaskList()
+        task = tl.add("Task")
+        tl.complete(task.id)
+        result = tl.toggle(task.id)
+        assert result.status == TaskStatus.PENDING
+
+    def test_toggle_back_and_forth(self):
+        tl = TaskList()
+        task = tl.add("Task")
+        tl.toggle(task.id)  # → completed
+        tl.toggle(task.id)  # → pending
+        tl.toggle(task.id)  # → completed
+        assert task.status == TaskStatus.COMPLETED
+
+    def test_toggle_non_existent_id(self):
+        tl = TaskList()
+        with pytest.raises(TaskNotFoundError):
+            tl.toggle(999)
+
+
 # --- T051-T053 (moved from US3): TaskList.update() ---
 
 class TestTaskListUpdate:
@@ -136,6 +179,20 @@ class TestTaskListUpdate:
         tl.add("Old title")
         task = tl.update(1, "New title")
         assert task.title == "New title"
+
+    def test_updates_description(self):
+        tl = TaskList()
+        tl.add("Task", "Old desc")
+        task = tl.update(1, "New title", "New desc")
+        assert task.title == "New title"
+        assert task.description == "New desc"
+
+    def test_updates_title_keeps_description(self):
+        tl = TaskList()
+        tl.add("Task", "Keep this desc")
+        task = tl.update(1, "New title")
+        assert task.title == "New title"
+        assert task.description == "Keep this desc"
 
     def test_raises_for_non_existent_id(self):
         tl = TaskList()
@@ -176,23 +233,25 @@ class TestTaskListDelete:
 class TestTaskListSerialization:
     def test_to_dict_returns_list_of_dicts(self):
         tl = TaskList()
-        tl.add("Task 1")
+        tl.add("Task 1", "Desc 1")
         tl.add("Task 2")
         data = tl.to_dict()
         assert len(data) == 2
         assert data[0]["id"] == 1
         assert data[0]["title"] == "Task 1"
+        assert data[0]["description"] == "Desc 1"
         assert data[0]["status"] == "pending"
         assert "created_at" in data[0]
 
     def test_from_dict_restores_tasks(self):
         tl = TaskList()
-        tl.add("Task 1")
+        tl.add("Task 1", "Desc 1")
         tl.add("Task 2")
         data = tl.to_dict()
         restored = TaskList.from_dict(data)
         assert len(restored.tasks) == 2
         assert restored.tasks[0].title == "Task 1"
+        assert restored.tasks[0].description == "Desc 1"
         assert restored.tasks[1].id == 2
 
     def test_from_dict_preserves_next_id(self):

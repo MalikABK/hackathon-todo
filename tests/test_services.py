@@ -10,14 +10,20 @@ class TestCreateTask:
     # T024
     def test_create_task_returns_task(self):
         tl = TaskList()
-        task = services.create_task(tl, "Buy groceries")
+        task = services.create_task(tl, "Buy groceries", "Milk, eggs, bread")
         assert task.id == 1
         assert task.title == "Buy groceries"
+        assert task.description == "Milk, eggs, bread"
 
     def test_create_task_empty_title_raises(self):
         tl = TaskList()
         with pytest.raises(EmptyTitleError):
             services.create_task(tl, "")
+
+    def test_create_task_default_description(self):
+        tl = TaskList()
+        task = services.create_task(tl, "Task")
+        assert task.description == ""
 
 
 class TestListTasks:
@@ -42,6 +48,26 @@ class TestCompleteTask:
         tl = TaskList()
         with pytest.raises(TaskNotFoundError):
             services.complete_task(tl, 999)
+
+
+class TestToggleTask:
+    def test_toggle_task_returns_updated_task(self):
+        tl = TaskList()
+        task = services.create_task(tl, "Task")
+        toggled = services.toggle_task(tl, task.id)
+        assert toggled.status.value == "completed"
+
+    def test_toggle_completed_to_pending(self):
+        tl = TaskList()
+        task = services.create_task(tl, "Task")
+        services.complete_task(tl, task.id)
+        toggled = services.toggle_task(tl, task.id)
+        assert toggled.status.value == "pending"
+
+    def test_toggle_non_existent_raises(self):
+        tl = TaskList()
+        with pytest.raises(TaskNotFoundError):
+            services.toggle_task(tl, 999)
 
 
 class TestUpdateTask:

@@ -34,6 +34,7 @@ class Task:
 
     id: int
     title: str
+    description: str = ""
     status: TaskStatus = TaskStatus.PENDING
     created_at: datetime = field(default_factory=datetime.now)
 
@@ -45,12 +46,12 @@ class TaskList:
     tasks: list[Task] = field(default_factory=list)
     _next_id: int = field(default=1, init=False)
 
-    def add(self, title: str) -> Task:
+    def add(self, title: str, description: str = "") -> Task:
         """Create a new task, assign sequential ID, append to list."""
         trimmed = title.strip()
         if not trimmed:
             raise EmptyTitleError("Title cannot be empty.")
-        task = Task(id=self._next_id, title=trimmed)
+        task = Task(id=self._next_id, title=trimmed, description=description.strip())
         self._next_id += 1
         self.tasks.append(task)
         return task
@@ -66,8 +67,8 @@ class TaskList:
         """Return all tasks in insertion order."""
         return list(self.tasks)
 
-    def update(self, task_id: int, new_title: str) -> Task:
-        """Update a task's title."""
+    def update(self, task_id: int, new_title: str, new_description: str | None = None) -> Task:
+        """Update a task's title and optionally its description."""
         task = self.get_by_id(task_id)
         if task is None:
             raise TaskNotFoundError(f"Task with ID {task_id} not found.")
@@ -75,6 +76,8 @@ class TaskList:
         if not trimmed:
             raise EmptyTitleError("Title cannot be empty.")
         task.title = trimmed
+        if new_description is not None:
+            task.description = new_description.strip()
         return task
 
     def complete(self, task_id: int) -> Task:
@@ -87,6 +90,17 @@ class TaskList:
                 f"Task {task_id} is already completed."
             )
         task.status = TaskStatus.COMPLETED
+        return task
+
+    def toggle(self, task_id: int) -> Task:
+        """Toggle task status between PENDING and COMPLETED."""
+        task = self.get_by_id(task_id)
+        if task is None:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found.")
+        if task.status == TaskStatus.COMPLETED:
+            task.status = TaskStatus.PENDING
+        else:
+            task.status = TaskStatus.COMPLETED
         return task
 
     def delete(self, task_id: int) -> None:
@@ -102,6 +116,7 @@ class TaskList:
             {
                 "id": t.id,
                 "title": t.title,
+                "description": t.description,
                 "status": t.status.value,
                 "created_at": t.created_at.isoformat(),
             }
@@ -117,6 +132,7 @@ class TaskList:
             task = Task(
                 id=item["id"],
                 title=item["title"],
+                description=item.get("description", ""),
                 status=TaskStatus(item.get("status", "pending")),
                 created_at=datetime.fromisoformat(item["created_at"]),
             )

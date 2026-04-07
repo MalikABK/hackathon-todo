@@ -26,10 +26,11 @@ python src/main.py --help
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `create <title>` | Create a new task | `python src/main.py create "Task"` |
+| `create <title> [-d desc]` | Create a new task | `python src/main.py create "Task" -d "Details"` |
 | `list` | List all tasks | `python src/main.py list` |
 | `complete <id>` | Mark a task as completed | `python src/main.py complete 1` |
-| `update <id> <title>` | Update a task's title | `python src/main.py update 1 "New"` |
+| `toggle <id>` | Toggle task status | `python src/main.py toggle 1` |
+| `update <id> <title> [-d desc]` | Update a task's title | `python src/main.py update 1 "New" -d "New desc"` |
 | `delete <id>` | Delete a task | `python src/main.py delete 1` |
 
 ## Architecture
@@ -110,9 +111,9 @@ No code is written without a spec. Every change maps to a task.
 ## Test Results
 
 ```
-56 passed in 4.29s
+73 passed in 1.42s
 ```
 
-- `tests/test_models.py`: 29 tests (Task, TaskList CRUD, serialization)
-- `tests/test_services.py`: 10 tests (CRUD + complete service layer)
-- `tests/test_cli.py`: 17 tests (argparse, dispatch, output, exit codes)
+- `tests/test_models.py`: 38 tests (Task, TaskList CRUD, toggle, serialization)
+- `tests/test_services.py`: 13 tests (CRUD + complete + toggle service layer)
+- `tests/test_cli.py`: 22 tests (argparse, dispatch, output, exit codes, toggle)

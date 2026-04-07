@@ -27,9 +27,12 @@ def create_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # create <title>
+    # create <title> [--description <desc>]
     create_parser = subparsers.add_parser("create", help="Create a new task")
     create_parser.add_argument("title", type=str, help="Task title")
+    create_parser.add_argument(
+        "--description", "-d", type=str, default="", help="Task description"
+    )
 
     # list
     subparsers.add_parser("list", help="List all tasks")
@@ -40,10 +43,19 @@ def create_parser() -> argparse.ArgumentParser:
     )
     complete_parser.add_argument("id", type=int, help="Task ID")
 
-    # update <id> <new_title>
+    # toggle <id>
+    toggle_parser = subparsers.add_parser(
+        "toggle", help="Toggle task between completed and pending"
+    )
+    toggle_parser.add_argument("id", type=int, help="Task ID")
+
+    # update <id> <new_title> [--description <desc>]
     update_parser = subparsers.add_parser("update", help="Update a task's title")
     update_parser.add_argument("id", type=int, help="Task ID")
     update_parser.add_argument("new_title", type=str, help="New task title")
+    update_parser.add_argument(
+        "--description", "-d", type=str, default=None, help="New task description"
+    )
 
     # delete <id>
     delete_parser = subparsers.add_parser("delete", help="Delete a task")
@@ -53,15 +65,16 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def format_task_table(tasks: list[Task]) -> str:
-    """Return a formatted table with ID, STATUS, TITLE columns."""
+    """Return a formatted table with ID, STATUS, TITLE, DESCRIPTION columns."""
     if not tasks:
         return "No tasks found."
 
     lines = []
-    header = f"{'ID':<4}{'STATUS':<12}{'TITLE'}"
+    header = f"{'ID':<4}{'STATUS':<12}{'TITLE':<30}{'DESCRIPTION'}"
     lines.append(header)
     for task in tasks:
-        line = f"{task.id:<4}{task.status.value:<12}{task.title}"
+        desc = task.description if task.description else ""
+        line = f"{task.id:<4}{task.status.value:<12}{task.title:<30}{desc}"
         lines.append(line)
     return "\n".join(lines)
 
@@ -80,7 +93,7 @@ def dispatch_command(args: list[str], task_list: TaskList) -> int:
 
     try:
         if parsed.command == "create":
-            task = services.create_task(task_list, parsed.title)
+            task = services.create_task(task_list, parsed.title, parsed.description)
             print(f'Task created: {task.id} - "{task.title}"')
             return 0
 
@@ -94,8 +107,16 @@ def dispatch_command(args: list[str], task_list: TaskList) -> int:
             print(f"Task {task.id} marked as completed.")
             return 0
 
+        elif parsed.command == "toggle":
+            task = services.toggle_task(task_list, parsed.id)
+            status = task.status.value
+            print(f"Task {task.id} toggled to {status}.")
+            return 0
+
         elif parsed.command == "update":
-            task = services.update_task(task_list, parsed.id, parsed.new_title)
+            task = services.update_task(
+                task_list, parsed.id, parsed.new_title, parsed.description
+            )
             print(f"Task {task.id} updated.")
             return 0
 

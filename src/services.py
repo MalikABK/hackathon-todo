@@ -3,9 +3,9 @@
 from src.models import Task, TaskList
 
 
-def create_task(task_list: TaskList, title: str) -> Task:
-    """Create a new task with the given title."""
-    return task_list.add(title)
+def create_task(task_list: TaskList, title: str, description: str = "") -> Task:
+    """Create a new task with the given title and optional description."""
+    return task_list.add(title, description)
 
 
 def list_tasks(task_list: TaskList) -> list[Task]:
@@ -18,9 +18,16 @@ def complete_task(task_list: TaskList, task_id: int) -> Task:
     return task_list.complete(task_id)
 
 
-def update_task(task_list: TaskList, task_id: int, new_title: str) -> Task:
-    """Update a task's title."""
-    return task_list.update(task_id, new_title)
+def toggle_task(task_list: TaskList, task_id: int) -> Task:
+    """Toggle a task between completed and pending."""
+    return task_list.toggle(task_id)
+
+
+def update_task(
+    task_list: TaskList, task_id: int, new_title: str, new_description: str | None = None
+) -> Task:
+    """Update a task's title and optionally its description."""
+    return task_list.update(task_id, new_title, new_description)
 
 
 def delete_task(task_list: TaskList, task_id: int) -> None:

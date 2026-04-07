@@ -48,6 +48,12 @@ class TestDispatchCommand:
         assert code == 0
         assert "Task created:" in captured.out
 
+    def test_create_with_description(self, capsys):
+        code = dispatch_command(["create", "Task", "-d", "Some desc"], self.tl)
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "Task created:" in captured.out
+
     # T029: empty title error
     def test_create_empty_title_error(self, capsys):
         code = dispatch_command(["create", ""], self.tl)
@@ -93,6 +99,28 @@ class TestDispatchCommand:
         captured = capsys.readouterr()
         assert code == 1
         assert "already completed" in captured.out
+
+    # Toggle tests
+    def test_toggle_pending_to_completed(self, capsys):
+        self.tl.add("Task")
+        code = dispatch_command(["toggle", "1"], self.tl)
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "toggled to completed" in captured.out
+
+    def test_toggle_completed_to_pending(self, capsys):
+        self.tl.add("Task")
+        dispatch_command(["complete", "1"], self.tl)
+        code = dispatch_command(["toggle", "1"], self.tl)
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "toggled to pending" in captured.out
+
+    def test_toggle_not_found(self, capsys):
+        code = dispatch_command(["toggle", "999"], self.tl)
+        captured = capsys.readouterr()
+        assert code == 1
+        assert "not found" in captured.out
 
     # T058: update success
     def test_update_subcommand(self, capsys):
